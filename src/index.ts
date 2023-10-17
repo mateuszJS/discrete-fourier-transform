@@ -2,38 +2,48 @@ const canvas = document.querySelector("canvas")!
 canvas.width = window.innerWidth
 canvas.height = window.innerHeight
 const ctx = canvas.getContext("2d")!
+ctx.fillStyle = "black";
+ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-const circles = [
-    { radius: 150, startAngle: -0.2, modAngle: 0.1 },
-    { radius: 70, startAngle: 0.2, modAngle: -0.2 },
-    { radius: 30, startAngle: 0.2, modAngle: 0.4 },
-]
+const circles = Array.from({ length: 100 }, (_, index) => {
+    const n = index * 2 + 1
+    return {
+        radius: 4 / (n * Math.PI), startAngle: 0, modAngle: n
+    }
+})
 
-const totalOutput: Point[] = []
+const fourierSeriesOutput: Point[] = []
 
+let time = 0
 function render(_time: number) {
-    const time = _time * 0.01
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    ctx.strokeStyle = "black"
-    ctx.lineWidth = 3
+    time -= 0.05
+
+    ctx.fillStyle = "rgb(0, 0, 0)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.fill();
+
+    ctx.strokeStyle = "white"
     
     /* draw and calculate each item of fourier series */
     const output = circles.reduce((acc, circle) => {
+        const scaledRadius = circle.radius * 100
         ctx.beginPath()
-        ctx.arc(acc.x, acc.y, circle.radius, 0, 2 * Math.PI)
+        ctx.lineWidth = 1
+        ctx.arc(acc.x, acc.y, scaledRadius, 0, 2 * Math.PI)
         ctx.stroke()
         const newPos = {
-            x: acc.x + Math.sin(circle.startAngle + time * circle.modAngle) * circle.radius,
-            y: acc.y - Math.cos(circle.startAngle + time * circle.modAngle) * circle.radius,
+            x: acc.x + Math.cos(circle.startAngle + time * circle.modAngle) * scaledRadius,
+            y: acc.y - Math.sin(circle.startAngle + time * circle.modAngle) * scaledRadius,
         }
 
         ctx.beginPath()
+        ctx.lineWidth = 3
         ctx.moveTo(acc.x, acc.y)
         ctx.lineTo(newPos.x, newPos.y)
         ctx.stroke()
 
         return newPos
-    }, { x: 300, y: 300 })
+    }, { x: 150, y: 300 })
 
     ctx.fillStyle = "red"
     ctx.beginPath()
@@ -42,12 +52,14 @@ function render(_time: number) {
 
     /* draw the output of so far computed fourier series */
 
-    totalOutput.push(output)
+    fourierSeriesOutput.unshift(output)
+    if (fourierSeriesOutput.length > 500) fourierSeriesOutput.pop()
 
     ctx.strokeStyle = "red"
     ctx.beginPath()
-    totalOutput.forEach((point, index) => {
-        ctx[index === 0 ? "moveTo" : "lineTo"](point.x, point.y)
+    ctx.moveTo(output.x, output.y)
+    fourierSeriesOutput.forEach((point, index) => {
+        ctx.lineTo(400 + index * 2, point.y)
     })
     ctx.stroke()
 
