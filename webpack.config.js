@@ -9,7 +9,7 @@ module.exports = {
     static: "./dist",
   },
   resolve: {
-    extensions: [".ts", ".js"],
+    extensions: [".ts", ".js", ".png"],
     modules: [path.resolve(__dirname, "src"), "node_modules"], // to use absolute path in src
   },
   module: {
@@ -22,6 +22,10 @@ module.exports = {
       {
         test: /\.scss$/,
         use: ["style-loader", "css-loader", "sass-loader"],
+      },
+      {
+        test: /\.(png)$/,
+        type: "asset/resource",
       },
     ],
   },
